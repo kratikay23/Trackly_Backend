@@ -4,7 +4,7 @@ import User from "../models/user.model.js";
 export const sendMessage = async (req, res) => {
   try {
     const { familyGroupId, messageText } = req.body;
-    const senderId = req.user.userId;
+    const senderId = req.user._id;
 
     if (!familyGroupId || !senderId || !messageText) {
       return res.status(400).json({ message: "All fields are required" });
@@ -41,7 +41,7 @@ export const fetchMessage = async (req, res) => {
 export const deleteMessage = async (req, res) => {
   try {
     const { msgId } = req.body;
-    const userId = req.user.userId;
+    const userId = req.user._id;
 
     const message = await Message.findById(msgId);
     if (!message) {
