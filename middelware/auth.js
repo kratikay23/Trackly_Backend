@@ -12,6 +12,7 @@ export const auth = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = { _id: decoded.userId, email: decoded.email };
+    console.log("Deocded UserId from token", decoded.userId)
 
     next();
   } catch (error) {

@@ -4,7 +4,7 @@ import User from "../models/user.model.js";
 export const addFamily = async (req, res) => {
   try {
     const { familyName } = req.body;
-    const headId = req.user.userId;
+    const headId = req.user._id;
 
     const existing = await Family.findOne({ headId });
     if (existing) {
@@ -32,7 +32,9 @@ export const addFamily = async (req, res) => {
 export const fetchFamily = async (req, res) => {
   try {
     // 1. Get the current user from DB using req.user.userId
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(req.user._id);
+    console.log("User fetched:", user); // 👈 log this
+
 
     if (!user || !user.familyId) {
       return res.status(404).json({ message: "Family not found" });
@@ -45,9 +47,9 @@ export const fetchFamily = async (req, res) => {
     const members = await User.find({ familyId: user.familyId }).select("userName email role _id");
 
     // 4. Combine and send
-        console.log(user,family, members)
+    console.log(user, family, members)
 
-    res.status(200).json({family: { ...family, members },role: user.role });
+    res.status(200).json({ family: { ...family, members }, role: user.role });
   } catch (error) {
     console.error("Fetch family error:", error);
     return res.status(500).json({ error: "Failed to fetch family" });
@@ -57,7 +59,7 @@ export const fetchFamily = async (req, res) => {
 
 export const addMembers = async (req, res) => {
   try {
-    const headId = req.user.userId;
+    const headId = req.user._id;
     const { memberEmail } = req.body;
 
     const headUser = await User.findById(headId);
@@ -87,7 +89,7 @@ export const addMembers = async (req, res) => {
 
 export const removeMember = async (req, res) => {
   try {
-    const headId = req.user.userId;
+    const headId = req.user._id;
     const { memberId } = req.body;
 
     const headUser = await User.findById(headId);
@@ -158,7 +160,7 @@ export const changeFamilyName = async (req, res) => {
 
 export const joinFamilyByCode = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(req.user._id);
     const { familyCode } = req.body;
 
     if (user.familyId) {
@@ -215,7 +217,7 @@ export const transferheadRole = async (req, res) => {
 
 export const deleteFamily = async (req, res) => {
   try {
-    const headId = req.user.userId;
+    const headId = req.user._id;
     const user = await User.findById(headId);
     const familyData = await Family.findById(user.familyId);
 
