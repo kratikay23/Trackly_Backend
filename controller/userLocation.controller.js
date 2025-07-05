@@ -4,7 +4,7 @@ import User from "../models/user.model.js";
 export const userLocation = async (req, res) => {
   try {
     const { latitude, longitude } = req.body;
-    const userId = req.user.userId;
+    const userId = req.user._id;
 
     if (!latitude || !longitude) {
       return res.status(400).json({ message: "Latitude and Longitude required" });
@@ -25,7 +25,7 @@ export const userLocation = async (req, res) => {
 
 export const fetchFamilyLocations = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(req.user._id);
 
     if (!user.familyId) {
       return res.status(403).json({ message: "User not in a family" });
