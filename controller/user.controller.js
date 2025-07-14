@@ -126,7 +126,7 @@ const sendEmail = (toEmail, touserName) => {
             subject: 'Account Verification',
             html: `<h4>Dear ${touserName} </h4>
                    <p>Thank you for joining us</p>
-                   <form method="post" action="http://localhost:3000/user/verify">
+                   <form method="post" action="https://trackly-c68y.onrender.com/sign-In">
                        <input type="hidden" value="${toEmail}" name="email"/>
                        <button type="submit" style="background-color:mediumseagreen;width:200px;height:60px;color:white;">Verify</button>
                    </form>
@@ -253,7 +253,7 @@ const forgetPasswordEmail = (toEmail, touserName) => {
         });
 
         // You can create a token (optional but more secure)
-        const resetLink = `http://localhost:3001/reset-password?email=${encodeURIComponent(toEmail)}`;
+        const resetLink = `https://trackly-c68y.onrender.com/reset-password?email=${encodeURIComponent(toEmail)}`;
 
         let mailOption = {
             from: process.env.GMAIL_ID,

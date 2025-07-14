@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema({
     default: "email",
   },
 
-  familyId: {
+  familyId: {                         
     type: mongoose.Schema.Types.ObjectId,
     ref: "Family",
   },
