@@ -1,22 +1,33 @@
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-dotenv.config();
 
+/** Read JWT from HttpOnly cookie first, then Authorization header (legacy fallback). */
+export const getTokenFromRequest = (req) => {
+  if (req.cookies?.accessToken) {
+    return req.cookies.accessToken;
+  }
+
+  const authHeader = req.headers.authorization;
+  if (authHeader && typeof authHeader === "string") {
+    return authHeader;
+  }
+
+  return null;
+};
+
+/** Protect routes: verify access token and attach user info to req.user. */
 export const auth = (req, res, next) => {
   try {
-    const token = req.headers.authorization;
+    const token = getTokenFromRequest(req);
 
     if (!token) {
-      return res.status(401).json({ error: "Access Denied. Token missing." });
+      return res.status(401).json({ error: "Access Denied. Not authenticated." });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = { _id: decoded.userId, email: decoded.email };
-    console.log("Deocded UserId from token", decoded.userId)
 
     next();
   } catch (error) {
-    console.error("JWT Error:", error.message);
     return res.status(401).json({ error: "Invalid or expired token." });
   }
 };

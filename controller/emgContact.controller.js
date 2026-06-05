@@ -22,7 +22,6 @@ export const addEmgContacts = async (req, res) => {
 
     return res.status(201).json({ message: "Emergency Contact added", contact: newContact });
   } catch (error) {
-    console.error("Error adding contact:", error);
     return res.status(500).json({ error: "Server error" });
   }
 };
@@ -36,7 +35,6 @@ export const fetchEmgContact = async (req, res) => {
 
     return res.status(200).json({ contacts });
   } catch (error) {
-    console.error("Error fetching contacts:", error);
     return res.status(500).json({ error: "Server error" });
   }
 };
@@ -62,7 +60,6 @@ export const updateEmgContact = async (req, res) => {
 
     return res.status(200).json({ message: "Contact updated", contact });
   } catch (error) {
-    console.error("Error updating contact:", error);
     return res.status(500).json({ error: "Server error" });
   }
 };
@@ -81,7 +78,6 @@ export const deleteEmgContact = async (req, res) => {
 
     return res.status(200).json({ message: "Contact deleted successfully" });
   } catch (error) {
-    console.error("Error deleting contact:", error);
     return res.status(500).json({ error: "Server error" });
   }
 };

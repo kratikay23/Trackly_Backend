@@ -28,21 +28,18 @@ export const createFamilyGroup = async (req, res) => {
       groupName,
     });
 
-    // Optional: If you want to return members
-    const groupMembers = await Family.findById(family._id).populate({
-      path: "members",
-      select: "userId userName email role",
-    });
+    const members = await User.find({ familyId: family._id }).select(
+      "userName email role _id"
+    );
 
     return res.status(200).json({
       message: "Family group created successfully",
       group: {
         groupInfo: newGroup,
-        family: groupMembers,
+        family: { ...family.toObject(), members },
       },
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ error: "Failed to create family group" });
   }
 };
@@ -68,7 +65,6 @@ export const fetchFamilyGroup = async (req, res) => {
       result: group,
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ error: "Failed to get family group" });
   }
 };

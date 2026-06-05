@@ -9,12 +9,17 @@ import FamilyGroupRoute from "./routes/familyGroup.route.js"
 import MessageRoute from "./routes/message.route.js"
 import UserLocationRoute from "./routes/userLocation.route.js"
 import cors from "cors"
+import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 dotenv.config();
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    credentials: true,
+}));
+app.use(cookieParser());
 mongoose.connect(process.env.DB)
     .then(() => {
         app.use(bodyParser.json());

@@ -18,7 +18,6 @@ export const sendMessage = async (req, res) => {
 
     return res.status(200).json({ message: "Message sent successfully", data: newMessage });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ error: "Failed to send message" });
   }
 };
@@ -29,11 +28,10 @@ export const fetchMessage = async (req, res) => {
 
     const messages = await Message.find({ familyGroupId })
       .sort({ createdAt: 1 })
-      .populate("senderId", "userId userName email");
+      .populate("senderId", "userName email");
 
     return res.status(200).json({ message: "Messages fetched successfully", data: messages });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ error: "Failed to get messages" });
   }
 };
@@ -55,7 +53,6 @@ export const deleteMessage = async (req, res) => {
     await Message.findByIdAndDelete(msgId);
     return res.status(200).json({ message: "Message deleted successfully" });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ error: "Failed to delete message" });
   }
 };

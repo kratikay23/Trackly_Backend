@@ -7,20 +7,20 @@ const userSchema = new mongoose.Schema({
   contactNo: {
     type: String,
     required: function () {
-      return this.authProvider === "email"; // ✅ only required for email users
+      return this.authProvider === "email"; 
     },
   },
 
   password: {
     type: String,
     required: function () {
-      return this.authProvider === "email"; // ✅ only required for email users
+      return this.authProvider === "email"; 
     },
   },
 
   authProvider: {
     type: String,
-    enum: ["email", "google"],
+    enum: ["email", "google", "both"],
     default: "email",
   },
 

@@ -18,7 +18,6 @@ export const userLocation = async (req, res) => {
 
     return res.status(200).json({ message: "Location updated", location: updated });
   } catch (err) {
-    console.log("Location update error:", err);
     return res.status(500).json({ error: "Failed to update location" });
   }
 };
@@ -59,7 +58,6 @@ export const fetchFamilyLocations = async (req, res) => {
     return res.status(200).json({ members: formatted });
 
   } catch (err) {
-    console.log("Fetch family location error:", err);
     return res.status(500).json({ error: "Failed to fetch family locations" });
   }
 };

@@ -23,7 +23,6 @@ export const addFamily = async (req, res) => {
 
     return res.status(200).json({ message: "Family created successfully" });
   } catch (error) {
-    console.error("Add family error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -33,7 +32,6 @@ export const fetchFamily = async (req, res) => {
   try {
     // 1. Get the current user from DB using req.user.userId
     const user = await User.findById(req.user._id);
-    console.log("User fetched:", user); // 👈 log this
 
 
     if (!user || !user.familyId) {
@@ -47,11 +45,9 @@ export const fetchFamily = async (req, res) => {
     const members = await User.find({ familyId: user.familyId }).select("userName email role _id");
 
     // 4. Combine and send
-    console.log(user, family, members)
 
     res.status(200).json({ family: { ...family, members }, role: user.role });
   } catch (error) {
-    console.error("Fetch family error:", error);
     return res.status(500).json({ error: "Failed to fetch family" });
   }
 };
@@ -82,7 +78,6 @@ export const addMembers = async (req, res) => {
 
     return res.status(200).json({ message: "Member added to family" });
   } catch (error) {
-    console.error("Add member error:", error);
     return res.status(500).json({ error: "Failed to add member" });
   }
 };
@@ -112,14 +107,13 @@ export const removeMember = async (req, res) => {
 
     return res.status(200).json({ message: "Member removed successfully" });
   } catch (error) {
-    console.error("Remove member error:", error);
     return res.status(500).json({ error: "Failed to remove member" });
   }
 };
 
 export const leaveFamily = async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId);
+    const user = await User.findById(req.user._id);
     if (!user || user.role !== "Member" || !user.familyId) {
       return res.status(403).json({ message: "Only members can leave family" });
     }
@@ -130,14 +124,13 @@ export const leaveFamily = async (req, res) => {
 
     return res.status(200).json({ message: "Left family successfully" });
   } catch (error) {
-    console.error("Leave family error:", error);
     return res.status(500).json({ error: "Failed to leave family" });
   }
 };
 
 export const changeFamilyName = async (req, res) => {
   try {
-    const headId = req.user.userId;
+    const headId = req.user._id;
     const { newFamilyName } = req.body;
 
     const headUser = await User.findById(headId);
@@ -153,7 +146,6 @@ export const changeFamilyName = async (req, res) => {
 
     return res.status(200).json({ message: "Family name updated", familyData });
   } catch (error) {
-    console.error("Change family name error:", error);
     return res.status(500).json({ error: "Failed to update family name" });
   }
 };
@@ -178,14 +170,13 @@ export const joinFamilyByCode = async (req, res) => {
 
     return res.status(200).json({ message: "Joined family successfully" });
   } catch (error) {
-    console.error("Join family error:", error);
     return res.status(500).json({ error: "Failed to join family" });
   }
 };
 
 export const transferheadRole = async (req, res) => {
   try {
-    const currentHeadId = req.user.userId;
+    const currentHeadId = req.user._id;
     const { newHeadUserId } = req.body;
 
     const currentHead = await User.findById(currentHeadId);
@@ -210,7 +201,6 @@ export const transferheadRole = async (req, res) => {
 
     return res.status(200).json({ message: "Head role transferred" });
   } catch (error) {
-    console.error("Transfer role error:", error);
     return res.status(500).json({ error: "Failed to transfer role" });
   }
 };
@@ -230,7 +220,6 @@ export const deleteFamily = async (req, res) => {
 
     return res.status(200).json({ message: "Family deleted successfully" });
   } catch (error) {
-    console.error("Delete family error:", error);
     return res.status(500).json({ error: "Failed to delete family" });
   }
 };
