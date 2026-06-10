@@ -1,19 +1,22 @@
-import nodemailer from "nodemailer";
+import sgMail from "@sendgrid/mail";
 
-const getTransporter = () =>
-  nodemailer.createTransport({
-    host: "smtp.sendgrid.net",
-    port: 587,
-    auth: {
-      user: "apikey",
-      pass: process.env.SENDGRID_API_KEY,
-    },
-  });
+const getFromAddress = () => {
+  const email = process.env.SENDGRID_FROM;
+  const name = process.env.SENDGRID_FROM_NAME;
+  if (!email) throw new Error("SENDGRID_FROM is not configured");
+  return name ? { email, name } : email;
+};
 
-export const sendMail = ({ to, subject, html }) =>
-  new Promise((resolve, reject) => {
-    getTransporter().sendMail(
-      { from: process.env.SENDGRID_FROM, to, subject, html },
-      (error) => (error ? reject(error) : resolve(true))
-    );
+export const sendMail = async ({ to, subject, html }) => {
+  const apiKey = process.env.SENDGRID_API_KEY;
+  if (!apiKey) throw new Error("SENDGRID_API_KEY is not configured");
+
+  sgMail.setApiKey(apiKey);
+  await sgMail.send({
+    to,
+    from: getFromAddress(),
+    subject,
+    html,
   });
+  return true;
+};

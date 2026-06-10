@@ -20,6 +20,6 @@
     "firebase-admin": "^13.4.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.1",
-    "nodemailer": "^7.0.4"
+    "@sendgrid/mail": "^8.1.5"
   }
 }
