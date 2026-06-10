@@ -16,7 +16,7 @@ const getBackendUrl = () =>
     `http://localhost:${process.env.PORT || 5000}`;
 
 const getFrontendUrl = () =>
-    process.env.FRONTEND_URL || "http://localhost:3000";
+    process.env.FRONTEND_URL || "https://trackly-c68y.onrender.com";
 
 const escapeHtml = (value) =>
     String(value)
@@ -279,6 +279,16 @@ export const resendVerificationEmail = async (req, res) => {
     }
 };
 
+export const resetPasswordRedirect = (req, res) => {
+    const email = (req.query.email || "").trim();
+    if (!email) {
+        return res.redirect(`${getFrontendUrl()}/forget-password`);
+    }
+    return res.redirect(
+        `${getFrontendUrl()}/?reset-email=${encodeURIComponent(email)}`
+    );
+};
+
 export const verifyEmailFromLink = async (req, res) => {
     const appUrl = getFrontendUrl();
     try {
@@ -406,7 +416,7 @@ export const forgotPassword = async (req, res) => {
 };
 
 const sendForgotPasswordEmail = (toEmail, userName) => {
-    const resetLink = `${getFrontendUrl()}/?reset-email=${encodeURIComponent(toEmail)}`;
+    const resetLink = `${getBackendUrl()}/user/reset-link?email=${encodeURIComponent(toEmail)}`;
 
     return sendMail({
         to: toEmail,

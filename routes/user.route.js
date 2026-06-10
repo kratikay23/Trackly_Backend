@@ -11,6 +11,7 @@ import {
   updatePassword,
   linkEmailLogin,
   updateUser,
+  resetPasswordRedirect,
   verifyEmailFromLink,
 } from "../controller/user.controller.js";
 import { auth } from "../middelware/auth.js";
@@ -38,6 +39,7 @@ route.post(
 );
 
 route.post("/google-sign-in", signInWithGoogle);
+route.get("/reset-link", resetPasswordRedirect);
 route.get("/verify-email", verifyEmailFromLink);
 route.post("/resend-verification", resendVerificationEmail);
 route.get("/me", auth, getCurrentUser);
