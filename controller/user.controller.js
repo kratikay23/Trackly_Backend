@@ -10,6 +10,20 @@ import {
 } from "../utils/authCookies.js";
 import { sendMail } from "../utils/mailer.js";
 
+const getBackendUrl = () =>
+    process.env.BACKEND_PUBLIC_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
+    `http://localhost:${process.env.PORT || 5000}`;
+
+const getFrontendUrl = () =>
+    process.env.FRONTEND_URL || "http://localhost:3000";
+
+const escapeHtml = (value) =>
+    String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/"/g, "&quot;");
+
 export const linkEmailLogin = async (req, res) => {
     try {
         const { contactNo, password, userName } = req.body;
@@ -221,8 +235,7 @@ export const signUpAction = async (req, res) => {
 };
 
 const buildVerifyLink = (toEmail) => {
-    const baseUrl = process.env.BACKEND_PUBLIC_URL || "http://localhost:5000";
-    return `${baseUrl}/user/verify-email?email=${encodeURIComponent(toEmail)}`;
+    return `${getBackendUrl()}/user/verify-email?email=${encodeURIComponent(toEmail)}`;
 };
 
 const sendVerificationEmail = (toEmail, userName) => {
@@ -266,22 +279,142 @@ export const resendVerificationEmail = async (req, res) => {
     }
 };
 
+export const resetPasswordFormPage = (req, res) => {
+    const email = (req.query.email || "").trim();
+    const signInUrl = getFrontendUrl();
+
+    if (!email) {
+        return res.status(400).type("html").send(`
+            <html><body style="font-family:sans-serif;text-align:center;padding:40px;">
+                <h2>Invalid reset link</h2>
+                <p>Request a new link from the forgot password page.</p>
+                <a href="${escapeHtml(signInUrl)}">Go to Sign In</a>
+            </body></html>
+        `);
+    }
+
+    return res.type("html").send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>Reset Password - Trackly</title>
+            <style>
+                body { font-family: sans-serif; background: #f4f6f8; margin: 0; padding: 24px; }
+                .card { max-width: 420px; margin: 40px auto; background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+                h2 { margin-top: 0; color: #1a365d; }
+                label { display: block; margin: 12px 0 6px; font-weight: 600; }
+                input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+                button { width: 100%; margin-top: 16px; padding: 12px; background: #2563eb; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
+                button:disabled { opacity: .6; cursor: not-allowed; }
+                .msg { margin-top: 12px; font-size: 14px; }
+                .ok { color: #15803d; }
+                .err { color: #b91c1c; }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <h2>Reset your password</h2>
+                <p>Account: <strong>${escapeHtml(email)}</strong></p>
+                <form id="resetForm">
+                    <label for="password">New password</label>
+                    <input id="password" type="password" minlength="5" required />
+                    <label for="confirm">Confirm password</label>
+                    <input id="confirm" type="password" minlength="5" required />
+                    <button type="submit" id="submitBtn">Reset password</button>
+                </form>
+                <p id="message" class="msg"></p>
+            </div>
+            <script>
+                const email = ${JSON.stringify(email)};
+                const signInUrl = ${JSON.stringify(signInUrl)};
+                document.getElementById("resetForm").addEventListener("submit", async (e) => {
+                    e.preventDefault();
+                    const password = document.getElementById("password").value;
+                    const confirm = document.getElementById("confirm").value;
+                    const msg = document.getElementById("message");
+                    const btn = document.getElementById("submitBtn");
+                    msg.textContent = "";
+                    msg.className = "msg";
+                    if (password !== confirm) {
+                        msg.textContent = "Passwords do not match.";
+                        msg.classList.add("err");
+                        return;
+                    }
+                    if (password.length < 5) {
+                        msg.textContent = "Password must be at least 5 characters.";
+                        msg.classList.add("err");
+                        return;
+                    }
+                    btn.disabled = true;
+                    try {
+                        const res = await fetch("/user/update-password", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ email, password }),
+                        });
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok) throw new Error(data.message || "Could not reset password");
+                        msg.textContent = "Password updated! Redirecting to Trackly...";
+                        msg.classList.add("ok");
+                        setTimeout(() => { window.location.href = signInUrl; }, 1500);
+                    } catch (err) {
+                        msg.textContent = err.message || "Something went wrong.";
+                        msg.classList.add("err");
+                        btn.disabled = false;
+                    }
+                });
+            </script>
+        </body>
+        </html>
+    `);
+};
+
 export const verifyEmailFromLink = async (req, res) => {
-    const frontend = process.env.FRONTEND_URL || "http://localhost:3000";
+    const appUrl = getFrontendUrl();
     try {
         const email = req.query.email;
-        if (!email) return res.redirect(`${frontend}/sign-in?verified=error`);
+        if (!email) {
+            return res.status(400).type("html").send(`
+                <html><body style="font-family:sans-serif;text-align:center;padding:40px;">
+                    <h2>Verification failed</h2>
+                    <p>Invalid or missing email in the link.</p>
+                    <a href="${escapeHtml(appUrl)}">Go to Trackly</a>
+                </body></html>
+            `);
+        }
 
         const user = await User.findOneAndUpdate(
             { email },
             { verified: true },
             { new: true }
         );
-        if (!user) return res.redirect(`${frontend}/sign-in?verified=notfound`);
+        if (!user) {
+            return res.status(404).type("html").send(`
+                <html><body style="font-family:sans-serif;text-align:center;padding:40px;">
+                    <h2>Account not found</h2>
+                    <p>Please sign up again.</p>
+                    <a href="${escapeHtml(appUrl)}">Go to Trackly</a>
+                </body></html>
+            `);
+        }
 
-        return res.redirect(`${frontend}/sign-in?verified=success`);
+        return res.type("html").send(`
+            <html><body style="font-family:sans-serif;text-align:center;padding:40px;">
+                <h2 style="color:#15803d;">Email verified!</h2>
+                <p>Your account is verified. You can sign in now.</p>
+                <a href="${escapeHtml(appUrl)}" style="display:inline-block;margin-top:12px;padding:12px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;">Go to Trackly</a>
+            </body></html>
+        `);
     } catch (error) {
-        return res.redirect(`${frontend}/sign-in?verified=error`);
+        return res.status(500).type("html").send(`
+            <html><body style="font-family:sans-serif;text-align:center;padding:40px;">
+                <h2>Verification failed</h2>
+                <p>Please try again or contact support.</p>
+                <a href="${escapeHtml(appUrl)}">Go to Trackly</a>
+            </body></html>
+        `);
     }
 };
 
@@ -365,8 +498,7 @@ export const forgotPassword = async (req, res) => {
 };
 
 const sendForgotPasswordEmail = (toEmail, userName) => {
-    const frontend = process.env.FRONTEND_URL || "http://localhost:3000";
-    const resetLink = `${frontend}/reset-password?email=${encodeURIComponent(toEmail)}`;
+    const resetLink = `${getBackendUrl()}/user/reset-password?email=${encodeURIComponent(toEmail)}`;
 
     return sendMail({
         to: toEmail,
