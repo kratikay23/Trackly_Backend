@@ -406,7 +406,7 @@ export const forgotPassword = async (req, res) => {
 };
 
 const sendForgotPasswordEmail = (toEmail, userName) => {
-    const resetLink = `${getFrontendUrl()}/reset-password?email=${encodeURIComponent(toEmail)}`;
+    const resetLink = `${getFrontendUrl()}/?reset-email=${encodeURIComponent(toEmail)}`;
 
     return sendMail({
         to: toEmail,
